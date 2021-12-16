@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useAsync } from "react-async";
 
-import useAsync from "./useAsync";
 import User from "./User";
 
 // 요청에 대한 상태를 관리 할 때에는 총 3가지 상태를 관리해야한다
@@ -19,24 +19,25 @@ async function getUsers() {
 }
 
 function Users() {
-  // const [users, setUsers] = useState(null);
-  // const [loading, setLoading] = useState(false);
-  // const [error, setError] = useState(null);
-
-  // getUsers = callbcak
-  // [] = deps
-  // true = skip
-  const [state, refetch] = useAsync(getUsers, [], true);
-
   const [userId, setUserId] = useState(null);
 
-  const { loading, data: users, error } = state; // state.data를 users라는 이름으로 조회
+  // react-async는 객체로 작성해줘야함 {}
+  const {
+    data: users,
+    error,
+    isLoading,
+    // reload,  // 바로 렌더링할때 사용
+    run, // 특정할때 사용
+  } = useAsync({
+    // promiseFn: getUsers, // 바로 렌더링
+    deferFn: getUsers, // 특정 인터렉션에서 호출
+  });
 
-  if (loading) return <div>로딩중 ... </div>;
+  if (isLoading) return <div>로딩중 ... </div>;
   if (error) return <div>에러 발생</div>;
 
   // skip이 true이기 때문에 fetchData가 실행되지 않아서 users가 null임
-  if (!users) return <button onClick={refetch}>불러오기</button>;
+  if (!users) return <button onClick={run}>불러오기</button>;
 
   return (
     <>
@@ -52,7 +53,7 @@ function Users() {
         ))}
       </ul>
 
-      <button type="button" onClick={refetch}>
+      <button type="button" onClick={run}>
         재요청
       </button>
 
